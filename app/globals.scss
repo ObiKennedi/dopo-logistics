@@ -1,0 +1,25 @@
+:root {
+  --primary: #0a1854;
+  --primary-hover: #07113c;
+  --primary-light: #162a80;
+  
+  --bg-light: #ffffff;
+  --bg-dark: #000000;
+  
+  --text-dark: #0a1854;
+  --text-light: #ffffff;
+  --text-muted: #5a6482;
+
+  --font-heading: 'Times New Roman', Georgia, serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --border-radius: 4px;
+  --transition-fast: 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+}
