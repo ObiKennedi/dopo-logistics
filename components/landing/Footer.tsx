@@ -64,7 +64,7 @@ export const Footer = () => {
               </li>
               <li>
                 <span className="footer__contact-label">Email:</span>
-                <a href="mailto:hello@dopo.ng" className="footer__link">hello@dopo.ng</a>
+                <a href="mailto:contact@dopo.delivery" className="footer__link">contact@dopo.delivery</a>
               </li>
               <li>
                 <span className="footer__contact-label">WhatsApp:</span>

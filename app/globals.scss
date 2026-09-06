@@ -18,8 +18,60 @@
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    scroll-behavior: smooth;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
 }
+
+html,
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Prevent horizontal scroll from AOS horizontal animations on mobile */
+@media (max-width: 768px) {
+  [data-aos="fade-left"],
+  [data-aos="fade-right"],
+  [data-aos="slide-left"],
+  [data-aos="slide-right"],
+  [data-aos="zoom-in-left"],
+  [data-aos="zoom-in-right"] {
+    transform: translate3d(0, 24px, 0) !important;
+    opacity: 0;
+  }
+
+  [data-aos="fade-left"].aos-animate,
+  [data-aos="fade-right"].aos-animate,
+  [data-aos="slide-left"].aos-animate,
+  [data-aos="slide-right"].aos-animate,
+  [data-aos="zoom-in-left"].aos-animate,
+  [data-aos="zoom-in-right"].aos-animate {
+    transform: translate3d(0, 0, 0) !important;
+    opacity: 1;
+  }
+}
+
+/* Accessibility: respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

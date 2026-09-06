@@ -19,6 +19,14 @@ const NavLinks = [
         href: "#services",
     },
     {
+        label: "Track your order",
+        href: "/track"
+    },
+    {
+        label: "Request a delivery",
+        href: "/request"
+    },
+    {
         label: "Contact Us",
         href: "#contact",
     },
