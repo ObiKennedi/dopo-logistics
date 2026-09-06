@@ -1,10 +1,12 @@
+import { Suspense } from "react";
 import { RequestForm } from "@/components/quatre/RequestForm";
+import { Loader } from "@/components/essentials/Loader";
 
 const RequestPage = () => {
     return (
-        <div className="request-form-container">
+        <Suspense fallback={<Loader />}>
             <RequestForm />
-        </div>
+        </Suspense>
     );
 }
 

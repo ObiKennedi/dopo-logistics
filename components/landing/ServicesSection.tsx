@@ -5,6 +5,8 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import '@/styles/landing/ServiceSection.scss';
 
+import Link from 'next/link';
+
 interface Service {
   id: string;
   title: string;
@@ -20,7 +22,7 @@ const servicesData: Service[] = [
     title: 'Errand Running',
     description: "Need something handled but don't have the time? We take care of everyday tasks, pickups, collections, payments and other legitimate errands on your behalf.",
     actionText: 'Request an Errand',
-    href: '#errand',
+    href: '/request?service=Errand%20Running',
     icon: '🏃‍♂️',
   },
   {
@@ -28,7 +30,7 @@ const servicesData: Service[] = [
     title: 'Delivery Services',
     description: 'From documents and packages to groceries and business items, we get your items where they need to go—safely and efficiently.',
     actionText: 'Request a Delivery',
-    href: '#delivery',
+    href: '/request?service=Delivery%20Services',
     icon: '📦',
   },
   {
@@ -36,7 +38,7 @@ const servicesData: Service[] = [
     title: 'Shopping Assistance',
     description: "Send us your shopping list and requirements. We'll source what you need within your preferred specifications and budget.",
     actionText: 'Request Shopping Assistance',
-    href: '#shopping',
+    href: '/request?service=Shopping%20Assistance',
     icon: '🛒',
   },
   {
@@ -44,7 +46,7 @@ const servicesData: Service[] = [
     title: 'Procurement',
     description: 'We help individuals and businesses source products efficiently, from everyday purchases to bulk and specialized procurement needs.',
     actionText: 'Request Procurement',
-    href: '#procurement',
+    href: '/request?service=Procurement',
     icon: '🏢',
   },
   {
@@ -52,7 +54,7 @@ const servicesData: Service[] = [
     title: 'Price Check & Market Survey',
     description: 'Want to know what something costs before you buy? We compare prices across available sellers and markets, helping you make informed purchasing decisions.',
     actionText: 'Request a Price Check',
-    href: '#price-check',
+    href: '/request?service=Price%20Check%20%26%20Market%20Survey',
     icon: '📊',
   },
   {
@@ -60,7 +62,7 @@ const servicesData: Service[] = [
     title: 'Hotel Search & Reservation',
     description: "Looking for a place to stay? Tell us your destination, dates and budget, and we'll help you find suitable accommodation options and assist with reservations where applicable.",
     actionText: 'Find a Hotel',
-    href: '#hotel',
+    href: '/request?service=Hotel%20Search%20%26%20Reservation',
     icon: '🏨',
   },
 ];
@@ -106,7 +108,7 @@ export const ServicesSection = () => {
               </div>
 
               <div className="services-card__footer">
-                <a href={service.href} className="services-card__link">
+                <Link href={service.href} className="services-card__link">
                   <span>{service.actionText}</span>
                   <svg
                     className="services-card__arrow"
@@ -123,7 +125,7 @@ export const ServicesSection = () => {
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
-                </a>
+                </Link>
               </div>
             </article>
           ))}

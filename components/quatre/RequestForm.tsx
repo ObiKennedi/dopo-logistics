@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import "@/styles/quatre/RequestForm.scss";
 
 type ServiceType = 
@@ -12,9 +13,28 @@ type ServiceType =
   | 'Hotel Search & Reservation';
 
 export const RequestForm = () => {
+  const searchParams = useSearchParams();
+  const serviceParam = searchParams.get('service');
+
   const [service, setService] = useState<ServiceType>('Delivery Services');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (serviceParam) {
+      const validServices: ServiceType[] = [
+        'Errand Running',
+        'Delivery Services',
+        'Shopping Assistance',
+        'Procurement',
+        'Price Check & Market Survey',
+        'Hotel Search & Reservation'
+      ];
+      if (validServices.includes(serviceParam as ServiceType)) {
+        setService(serviceParam as ServiceType);
+      }
+    }
+  }, [serviceParam]);
 
   // Form State
   const [formData, setFormData] = useState({

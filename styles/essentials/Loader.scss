@@ -1,0 +1,171 @@
+@keyframes dopo-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dopo-spin-reverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes dopo-pulse-glow {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+.dopo-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  position: relative;
+  overflow: hidden;
+
+  /* Inline variant */
+  &--inline {
+    padding: 2rem;
+    width: 100%;
+  }
+
+  /* Fullscreen variant */
+  &--fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: #ffffff;
+  }
+
+  /* Ambient Glow Background */
+  &__glow-bg {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(10, 24, 84, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+  }
+
+  /* Decorative Corner Accents */
+  &__corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: rgba(10, 24, 84, 0.15);
+    border-style: solid;
+    pointer-events: none;
+
+    &--tl {
+      top: 2rem;
+      left: 2rem;
+      border-width: 2px 0 0 2px;
+    }
+    &--tr {
+      top: 2rem;
+      right: 2rem;
+      border-width: 2px 2px 0 0;
+    }
+    &--bl {
+      bottom: 2rem;
+      left: 2rem;
+      border-width: 0 0 2px 2px;
+    }
+    &--br {
+      bottom: 2rem;
+      right: 2rem;
+      border-width: 0 2px 2px 0;
+    }
+  }
+
+  /* Center Stage */
+  &__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 1;
+  }
+
+  /* Emblem Structure */
+  &__emblem {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__ring {
+    position: absolute;
+    inset: 0;
+    animation: dopo-spin 6s linear infinite;
+
+    &--inner {
+      inset: 8px;
+      animation: dopo-spin-reverse 4s linear infinite;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__pulse {
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    background: rgba(10, 24, 84, 0.03);
+    animation: dopo-pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  &__logo-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    z-index: 2;
+  }
+
+  &__logo {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  /* Messages & Tagline */
+  &__message {
+    font-size: 0.925rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--primary, #0a1854);
+    margin: 0;
+  }
+
+  &__tagline {
+    position: absolute;
+    bottom: 2.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(10, 24, 84, 0.4);
+    margin: 0;
+  }
+}

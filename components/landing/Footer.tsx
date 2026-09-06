@@ -41,12 +41,12 @@ export const Footer = () => {
           <div className="footer__nav-col">
             <h4 className="footer__heading">Services</h4>
             <ul className="footer__list">
-              <li><a href="#services" className="footer__link">Errand Running</a></li>
-              <li><a href="#services" className="footer__link">Delivery Services</a></li>
-              <li><a href="#services" className="footer__link">Shopping Assistance</a></li>
-              <li><a href="#services" className="footer__link">Procurement</a></li>
-              <li><a href="#services" className="footer__link">Price Check & Survey</a></li>
-              <li><a href="#services" className="footer__link">Hotel Search & Booking</a></li>
+              <li><a href="/request?service=Errand%20Running" className="footer__link">Errand Running</a></li>
+              <li><a href="/request?service=Delivery%20Services" className="footer__link">Delivery Services</a></li>
+              <li><a href="/request?service=Shopping%20Assistance" className="footer__link">Shopping Assistance</a></li>
+              <li><a href="/request?service=Procurement" className="footer__link">Procurement</a></li>
+              <li><a href="/request?service=Price%20Check%20%26%20Market%20Survey" className="footer__link">Price Check & Survey</a></li>
+              <li><a href="/request?service=Hotel%20Search%20%26%20Reservation" className="footer__link">Hotel Search & Booking</a></li>
             </ul>
           </div>
 
