@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Auth Layout - DOPO Logistics
+   Cinematic dark glass backdrop with centered blurry glass card
+   ========================================================================== */
+
+.dopo-auth-layout,
+.auth-layout {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  background-color: #030712;
+
+  /* Background image container */
+  &__bg-wrapper {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Background Image */
+  &__bg-image,
+  .background-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.05);
+    filter: brightness(0.9) contrast(1.05);
+  }
+
+  /* Clear dark glass overlay to make background subtly visible */
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+      circle at 50% 40%,
+      rgba(10, 24, 84, 0.55) 0%,
+      rgba(3, 7, 18, 0.8) 75%,
+      rgba(0, 0, 0, 0.9) 100%
+    );
+    backdrop-filter: blur(6px) brightness(0.85);
+    -webkit-backdrop-filter: blur(6px) brightness(0.85);
+  }
+
+  /* Centered Auth Content */
+  &__content,
+  .auth-layout__content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 480px;
+    padding: 2.5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    @media (max-width: 480px) {
+      padding: 1.5rem 1rem;
+    }
+  }
+}

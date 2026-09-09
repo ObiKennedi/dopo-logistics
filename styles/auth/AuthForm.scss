@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Auth Form Styles - DOPO Logistics Auth
+   Unified styling for LoginForm, RegisterForm, VerifyEmailForm, etc.
+   ========================================================================== */
+
+@keyframes authFormSpinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes authBannerEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+
+  /* Field Group */
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    position: relative;
+  }
+
+  /* Label */
+  &__label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(241, 245, 249, 0.9);
+    letter-spacing: 0.01em;
+  }
+
+  /* Input Wrapper */
+  &__input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Text & Password & Email Inputs */
+  &__input {
+    width: 100%;
+    padding: 0.78rem 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: #ffffff;
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-size: 0.95rem;
+    outline: none;
+    transition: 
+      background-color var(--transition-fast, 0.2s ease),
+      border-color var(--transition-fast, 0.2s ease),
+      box-shadow var(--transition-fast, 0.2s ease);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: #60a5fa;
+      box-shadow: 
+        0 0 0 3px rgba(96, 165, 250, 0.25),
+        0 0 15px rgba(96, 165, 250, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Padding adjustment when an action button or icon exists inside input */
+    &--has-action {
+      padding-right: 2.75rem;
+    }
+
+    /* Centered OTP styling */
+    &--otp {
+      text-align: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.45em;
+      padding-left: calc(1rem + 0.45em);
+      color: #93c5fd;
+
+      &::placeholder {
+        letter-spacing: 0.45em;
+        color: rgba(255, 255, 255, 0.25);
+      }
+    }
+  }
+
+  /* Password Toggle Button */
+  &__toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color var(--transition-fast, 0.2s ease), transform var(--transition-fast, 0.2s ease);
+
+    &:hover {
+      color: #ffffff;
+      transform: scale(1.08);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #60a5fa;
+      outline-offset: 2px;
+    }
+  }
+
+  /* Forgot Password Link Container */
+  &__meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: -0.35rem;
+  }
+
+  &__forgot-link {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #93c5fd;
+    text-decoration: none;
+    transition: color var(--transition-fast, 0.2s ease), text-shadow var(--transition-fast, 0.2s ease);
+
+    &:hover {
+      color: #ffffff;
+      text-decoration: underline;
+      text-shadow: 0 0 8px rgba(147, 197, 253, 0.6);
+    }
+  }
+
+  /* Info / Notice Banner (e.g. For Email Verification / Password Reset) */
+  &__info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.16) 0%,
+      rgba(10, 24, 84, 0.25) 100%
+    );
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    backdrop-filter: blur(8px);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    animation: authBannerEntrance 0.3s ease-out forwards;
+
+    p {
+      margin: 0;
+    }
+
+    strong {
+      color: #ffffff;
+      font-weight: 600;
+      word-break: break-all;
+    }
+  }
+
+  &__info-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: #60a5fa;
+  }
+
+  /* Success Banner */
+  &__success-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.18) 0%,
+      rgba(5, 150, 105, 0.12) 100%
+    );
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    backdrop-filter: blur(8px);
+    color: #d1fae5;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+    animation: authBannerEntrance 0.3s ease-out forwards;
+
+    p {
+      margin: 0;
+      color: #ecfdf5;
+      font-weight: 500;
+    }
+  }
+
+  &__success-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: #34d399;
+  }
+
+  /* Primary Submit Button */
+  &__submit-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.825rem 1.25rem;
+    margin-top: 0.35rem;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+    transition: 
+      background var(--transition-fast, 0.2s ease),
+      box-shadow var(--transition-fast, 0.2s ease),
+      transform var(--transition-fast, 0.2s ease),
+      opacity var(--transition-fast, 0.2s ease);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Submit button spinner */
+    .auth-form__spinner {
+      width: 18px;
+      height: 18px;
+      animation: authFormSpinner 0.7s linear infinite;
+    }
+  }
+}

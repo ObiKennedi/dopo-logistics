@@ -57,15 +57,17 @@ export const RequestForm = () => {
   };
 
   const sendTelegramAlert = async () => {
-    const BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN';
-    const CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID';
+    const BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || '';
+    const CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || '';
 
     // Do not attempt to fetch if placeholder token is not configured yet
     if (
       !BOT_TOKEN ||
       BOT_TOKEN === 'YOUR_TELEGRAM_BOT_TOKEN' ||
+      BOT_TOKEN === 'your_telegram_bot_token' ||
       !CHAT_ID ||
-      CHAT_ID === 'YOUR_TELEGRAM_CHAT_ID'
+      CHAT_ID === 'YOUR_TELEGRAM_CHAT_ID' ||
+      CHAT_ID === 'your_telegram_chat_id'
     ) {
       console.info('Telegram alert skipped: Bot token or Chat ID is not configured.');
       return;
@@ -114,11 +116,49 @@ export const RequestForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Google Forms submission endpoint URL
-    const GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/YOUR_GOOGLE_FORM_ID/formResponse';
-    const isGoogleFormConfigured = !GOOGLE_FORM_URL.includes('YOUR_GOOGLE_FORM_ID');
+    const WEB3FORMS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
+    const isWeb3FormsConfigured = WEB3FORMS_KEY && !WEB3FORMS_KEY.includes('your_web3forms_access_key');
+
+    const GOOGLE_SHEETS_WEBHOOK = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL;
+    const isGoogleSheetsConfigured = GOOGLE_SHEETS_WEBHOOK && !GOOGLE_SHEETS_WEBHOOK.includes('your_deployment_id');
+
+    const GOOGLE_FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL;
+    const isGoogleFormConfigured = GOOGLE_FORM_URL && !GOOGLE_FORM_URL.includes('YOUR_GOOGLE_FORM_ID') && !GOOGLE_FORM_URL.includes('your_google_form_id');
 
     try {
+      // 1. Web3Forms Submission (if configured)
+      if (isWeb3FormsConfigured) {
+        await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: `New DOPO Request: ${service} - ${formData.fullName}`,
+            from_name: 'DOPO Logistics Web App',
+            service,
+            ...formData,
+          }),
+        });
+      }
+
+      // 2. Google Sheets Apps Script Webhook (if configured)
+      if (isGoogleSheetsConfigured) {
+        await fetch(GOOGLE_SHEETS_WEBHOOK, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            timestamp: new Date().toISOString(),
+            service,
+            ...formData,
+          }),
+        });
+      }
+
+      // 3. Google Forms fallback (if configured)
       if (isGoogleFormConfigured) {
         const googleFormData = new FormData();
         googleFormData.append('entry.1000001', formData.fullName);
@@ -134,18 +174,20 @@ export const RequestForm = () => {
           mode: 'no-cors',
           body: googleFormData,
         });
-      } else {
-        // Simulate a brief submission delay if endpoint is in placeholder mode
+      }
+
+      if (!isWeb3FormsConfigured && !isGoogleSheetsConfigured && !isGoogleFormConfigured) {
+        // Simulate a brief submission delay when in demo/local mode
         await new Promise((resolve) => setTimeout(resolve, 400));
       }
 
-      // Send Instant Telegram Notification if configured
+      // 4. Telegram Notification
       await sendTelegramAlert();
 
       setSubmitted(true);
     } catch (error) {
       console.error('Form submission notice:', error);
-      // Still set submitted to true so user gets confirmation feedback
+      // Still set submitted to true so user gets friendly confirmation feedback
       setSubmitted(true);
     } finally {
       setIsSubmitting(false);
