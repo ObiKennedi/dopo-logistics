@@ -80,7 +80,7 @@ export function Navigation() {
             <li>
               <LinkButton
                 className="auth-link auth-link--signup"
-                href="/signup"
+                href="/register"
               >
                 Create an Account
               </LinkButton>
@@ -135,7 +135,7 @@ export function Navigation() {
           <div className="quatre-nav__dropdown-auth">
             <LinkButton
               className="auth-link auth-link--signup"
-              href="/signup"
+              href="/register"
               onClick={closeMenu}
             >
               Create an Account

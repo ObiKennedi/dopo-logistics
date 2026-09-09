@@ -47,7 +47,7 @@ export const HeroSection = () => {
                 </div>
 
                 <div className="hero-actions" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
-                    <LinkButton href="/signup" className="btn-primary">
+                    <LinkButton href="/register" className="btn-primary">
                         <span>Get Started</span>
                         <ArrowRight size={18} className="btn-icon" />
                     </LinkButton>
