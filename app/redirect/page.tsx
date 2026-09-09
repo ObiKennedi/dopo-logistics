@@ -1,25 +1,16 @@
-"use client";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { Loader } from "@/components/essentials/Loader";
+export default async function RedirectPage() {
+  const session = await auth();
 
-export default function RedirectPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  if (!session?.user) {
+    redirect("/login");
+  }
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
-    } else if (status === "authenticated" && session?.user) {
-      if (session.user.role === "ADMIN") {
-        router.replace("/admin/dashboard");
-      } else {
-        router.replace("/dashboard");
-      }
-    }
-  }, [session, status, router]);
-
-  return <Loader message="Setting up your dashboard…" fullscreen />;
+  if (session.user.role === "ADMIN") {
+    redirect("/admin/dashboard");
+  } else {
+    redirect("/dashboard");
+  }
 }
