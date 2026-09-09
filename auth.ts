@@ -27,6 +27,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" }, // Required when using Credentials provider
+  pages: {
+    signIn: "/login",
+  },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -58,17 +61,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // If a relative redirect URL is passed, resolve it
+      if (url.startsWith("/")) {
+        if (url === "/" || url.includes("/login") || url.includes("/register")) {
+          return `${baseUrl}/redirect`;
+        }
+        return `${baseUrl}${url}`;
+      }
+      // If same origin
+      if (new URL(url).origin === baseUrl) {
+        if (url === baseUrl || url === `${baseUrl}/` || url.includes("/login") || url.includes("/register")) {
+          return `${baseUrl}/redirect`;
+        }
+        return url;
+      }
+      return `${baseUrl}/redirect`;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role || "CUSTOMER";
+        token.role = (user as any).role;
       }
+
+      // If role is not yet on the token (e.g. initial Google OAuth sign in or refresh), fetch from database
+      if ((!token.role || !token.id) && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+          select: { id: true, role: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user && token) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.role = (token.role as Role) || "CUSTOMER";
       }
       return session;
     },
