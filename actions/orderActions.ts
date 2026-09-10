@@ -14,30 +14,33 @@ function generateTrackingCode(): string {
   return code;
 }
 
-function mapServiceType(service: string): ServiceType {
+function mapServiceType(service: string): any {
+  // Safely map the incoming service string to a Prisma ServiceType enum value.
+  // If the generated enum is missing (e.g., during a client rebuild), fall back to the raw string literal.
+  const fallback = (val: string) => (ServiceType as any)[val] ?? val;
   switch (service) {
     case "Delivery Services":
     case "DELIVERY_SERVICES":
-      return ServiceType.DELIVERY_SERVICES;
+      return fallback("DELIVERY_SERVICES");
     case "Errand Running":
     case "ERRAND_RUNNING":
-      return ServiceType.ERRAND_RUNNING;
+      return fallback("ERRAND_RUNNING");
     case "Shopping Assistance":
     case "SHOPPING_ASSISTANCE":
-      return ServiceType.SHOPPING_ASSISTANCE;
+      return fallback("SHOPPING_ASSISTANCE");
     case "Procurement":
     case "PROCUREMENT":
-      return ServiceType.PROCUREMENT;
+      return fallback("PROCUREMENT");
     case "Price Check & Market Survey":
     case "Price Check":
     case "PRICE_CHECK":
-      return ServiceType.PRICE_CHECK;
+      return fallback("PRICE_CHECK");
     case "Hotel Search & Reservation":
     case "Hotel Reservation":
     case "HOTEL_RESERVATION":
-      return ServiceType.HOTEL_RESERVATION;
+      return fallback("HOTEL_RESERVATION");
     default:
-      return ServiceType.DELIVERY_SERVICES;
+      return fallback("DELIVERY_SERVICES");
   }
 }
 
