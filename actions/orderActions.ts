@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { ServiceType, OrderStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import type { ServiceType, OrderStatus } from "@prisma/client";
 import { sendOrderConfirmationEmail } from "@/lib/resend";
 
 function generateTrackingCode(): string {
@@ -14,33 +15,32 @@ function generateTrackingCode(): string {
   return code;
 }
 
-function mapServiceType(service: string): any {
-  // Safely map the incoming service string to a Prisma ServiceType enum value.
-  // If the generated enum is missing (e.g., during a client rebuild), fall back to the raw string literal.
-  const fallback = (val: string) => (ServiceType as any)[val] ?? val;
+function mapServiceType(service: string): string {
+  // Map incoming service string to the corresponding Prisma ServiceType enum value.
+  // We return the literal enum name as a string; Prisma accepts string literals matching the enum.
   switch (service) {
     case "Delivery Services":
     case "DELIVERY_SERVICES":
-      return fallback("DELIVERY_SERVICES");
+      return "DELIVERY_SERVICES";
     case "Errand Running":
     case "ERRAND_RUNNING":
-      return fallback("ERRAND_RUNNING");
+      return "ERRAND_RUNNING";
     case "Shopping Assistance":
     case "SHOPPING_ASSISTANCE":
-      return fallback("SHOPPING_ASSISTANCE");
+      return "SHOPPING_ASSISTANCE";
     case "Procurement":
     case "PROCUREMENT":
-      return fallback("PROCUREMENT");
+      return "PROCUREMENT";
     case "Price Check & Market Survey":
     case "Price Check":
     case "PRICE_CHECK":
-      return fallback("PRICE_CHECK");
+      return "PRICE_CHECK";
     case "Hotel Search & Reservation":
     case "Hotel Reservation":
     case "HOTEL_RESERVATION":
-      return fallback("HOTEL_RESERVATION");
+      return "HOTEL_RESERVATION";
     default:
-      return fallback("DELIVERY_SERVICES");
+      return "DELIVERY_SERVICES";
   }
 }
 
@@ -61,8 +61,8 @@ async function sendTelegramNotification(
     additionalNotes?: string;
   }
 ) {
-  const BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || "";
-  const CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || "";
+  const BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || "";
+  const CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID || "";
 
   if (!BOT_TOKEN || !CHAT_ID || BOT_TOKEN.includes("your_") || CHAT_ID.includes("YOUR_")) {
     return;
@@ -132,8 +132,11 @@ export async function createOrderAction(prevState: any, formData: FormData) {
     return { error: "Full Name and Email Address are required." };
   }
 
-  const serviceType = mapServiceType(serviceRaw);
+  const serviceType = mapServiceType(serviceRaw) as ServiceType;
   const trackingNumber = generateTrackingCode();
+
+  const checkInDate = checkInDateStr && !isNaN(new Date(checkInDateStr).getTime()) ? new Date(checkInDateStr) : null;
+  const checkOutDate = checkOutDateStr && !isNaN(new Date(checkOutDateStr).getTime()) ? new Date(checkOutDateStr) : null;
 
   try {
     const order = await prisma.order.create({
@@ -149,11 +152,16 @@ export async function createOrderAction(prevState: any, formData: FormData) {
         itemDetails: itemDetails || null,
         budget: budget || null,
         hotelCity: hotelCity || null,
-        checkInDate: checkInDateStr ? new Date(checkInDateStr) : null,
-        checkOutDate: checkOutDateStr ? new Date(checkOutDateStr) : null,
+        checkInDate,
+        checkOutDate,
         additionalNotes: additionalNotes || null,
       },
     });
+
+    if (session?.user?.id) {
+      revalidatePath("/dashboard");
+      revalidatePath("/user-track");
+    }
 
     // Send async alerts
     sendTelegramNotification(trackingNumber, serviceRaw, {
