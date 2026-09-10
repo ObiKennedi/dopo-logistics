@@ -69,7 +69,7 @@ export const Loader = ({
 
           {/* Logo Container */}
           <div className="dopo-loader__logo-wrap">
-            <img src="/Banner.png" alt="DOPO Logistics" className="dopo-loader__logo" />
+            <img src="/dopo.png" alt="DOPO Logistics" className="dopo-loader__logo" />
             <div className="dopo-loader__glow" />
           </div>
         </div>

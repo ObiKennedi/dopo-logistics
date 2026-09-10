@@ -12,6 +12,7 @@ generator client {
 enum Role {
   CUSTOMER
   ADMIN
+  STAFF
 }
 
 enum OTPType {
@@ -19,21 +20,91 @@ enum OTPType {
   PASSWORD_RESET
 }
 
+enum ServiceType {
+  ERRAND_RUNNING
+  DELIVERY_SERVICES
+  SHOPPING_ASSISTANCE
+  PROCUREMENT
+  PRICE_CHECK
+  HOTEL_RESERVATION
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  PICKED_UP
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  GENERAL
+  ORDER_INQUIRY
+  DELIVERY_DELAY
+  PAYMENT_ISSUE
+  COMPLAINT
+  TECHNICAL
+}
+
+enum ChatStatus {
+  ACTIVE
+  WAITING
+  CLOSED
+}
+
+enum SenderType {
+  CUSTOMER
+  AGENT
+  SYSTEM
+  BOT
+}
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(CUSTOMER)
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  phone          String?
+  role           Role            @default(CUSTOMER)
   
-  accounts      Account[]
-  sessions      Session[]
-  otps          OTP[]
+  accounts       Account[]
+  sessions       Session[]
+  otps           OTP[]
+  orders         Order[]
+  tickets        Ticket[]
+  ticketMessages TicketMessage[]
+  customerChats  ChatSession[]   @relation("CustomerChats")
+  agentChats     ChatSession[]   @relation("AgentChats")
+  chatMessages   ChatMessage[]
   
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model OTP {
@@ -83,4 +154,151 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// -------------------------------------------------------------
+// ORDERS MODEL
+// -------------------------------------------------------------
+model Order {
+  id               String         @id @default(cuid())
+  trackingNumber   String         @unique
+  serviceType      ServiceType
+  status           OrderStatus    @default(PENDING)
+  paymentStatus    PaymentStatus  @default(PENDING)
+
+  // Customer Contact Details
+  customerName     String
+  customerEmail    String
+  customerPhone    String?
+
+  // Associated Registered User (Optional for Guest Orders)
+  userId           String?
+  user             User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Location / Service-specific details
+  pickupLocation   String?
+  deliveryLocation String?
+  itemDetails      String?        @db.Text
+  budget           String?
+  estimatedAmount  Float?
+  finalAmount      Float?
+
+  // Hotel reservation specific details
+  hotelCity        String?
+  checkInDate      DateTime?
+  checkOutDate     DateTime?
+
+  additionalNotes  String?        @db.Text
+
+  // Relations to Support & Chats
+  tickets          Ticket[]
+  chatSessions     ChatSession[]
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([trackingNumber])
+  @@index([customerEmail])
+  @@index([userId])
+  @@index([status])
+}
+
+// -------------------------------------------------------------
+// SUPPORT TICKETS MODEL
+// -------------------------------------------------------------
+model Ticket {
+  id             String         @id @default(cuid())
+  ticketNumber   String         @unique
+  subject        String
+  description    String         @db.Text
+  category       TicketCategory @default(GENERAL)
+  priority       TicketPriority @default(MEDIUM)
+  status         TicketStatus   @default(OPEN)
+
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId        String?
+  order          Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  messages       TicketMessage[]
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  closedAt       DateTime?
+
+  @@index([ticketNumber])
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  senderId    String
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  message     String   @db.Text
+  attachments String[] @default([])
+  isStaff     Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+// -------------------------------------------------------------
+// LIVE CUSTOMER SERVICE CHATS MODEL
+// -------------------------------------------------------------
+model ChatSession {
+  id              String        @id @default(cuid())
+  status          ChatStatus    @default(ACTIVE)
+
+  // Customer Relation (if authenticated)
+  userId          String?
+  user            User?         @relation("CustomerChats", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Assigned Staff / Agent Relation
+  assignedAgentId String?
+  assignedAgent   User?         @relation("AgentChats", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+
+  // Optional Order Relation
+  orderId         String?
+  order           Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  // Guest details (if not logged in)
+  guestName       String?
+  guestEmail      String?
+  guestPhone      String?
+
+  messages        ChatMessage[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  closedAt        DateTime?
+
+  @@index([userId])
+  @@index([assignedAgentId])
+  @@index([status])
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  senderId    String?
+  sender      User?       @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  senderType  SenderType  @default(CUSTOMER)
+  senderName  String?
+  content     String      @db.Text
+  isRead      Boolean     @default(false)
+  attachments String[]    @default([])
+
+  createdAt   DateTime    @default(now())
+
+  @@index([sessionId])
 }

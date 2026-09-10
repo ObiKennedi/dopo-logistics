@@ -7,7 +7,7 @@ export async function sendOTPEmail(email: string, code: string, type: "EMAIL_VER
   const subject = isVerification ? "Verify your DOPO Account" : "Reset your DOPO Password";
 
   await resend.emails.send({
-    from: "DOPO Logistics <onboarding@resend.dev>", // Replace with your verified domain in production
+    from: "DOPO Logistics <onboarding@resend.dev>",
     to: email,
     subject,
     html: `
@@ -19,4 +19,26 @@ export async function sendOTPEmail(email: string, code: string, type: "EMAIL_VER
       </div>
     `,
   });
+}
+
+export async function sendOrderConfirmationEmail(email: string, trackingNumber: string, service: string, name: string) {
+  try {
+    await resend.emails.send({
+      from: "DOPO Logistics <onboarding@resend.dev>",
+      to: email,
+      subject: `DOPO Order Confirmation - ${trackingNumber}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #0a1854;">
+          <h2>Request Received Successfully!</h2>
+          <p>Hi ${name},</p>
+          <p>Thank you for trusting DOPO Logistics. We have received your request for <strong>${service}</strong>.</p>
+          <p>Your tracking number is:</p>
+          <h2 style="background: #eff6ff; color: #1d4ed8; padding: 10px 18px; display: inline-block; border-radius: 8px; letter-spacing: 2px;">${trackingNumber}</h2>
+          <p>Our team is reviewing your request and will reach out to you shortly.</p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.warn("Order confirmation email notice:", err);
+  }
 }

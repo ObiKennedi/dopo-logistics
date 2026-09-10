@@ -34,6 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "Credentials",
@@ -60,7 +61,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  events: {
+    async createUser({ user }) {
+      // Auto-verify user when created via OAuth (Google)
+      if (user.email) {
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        } catch (err) {
+          console.error("Error setting emailVerified on createUser:", err);
+        }
+      }
+    },
+    async linkAccount({ user, account }) {
+      // Auto-verify account when Google account is linked
+      if (account.provider === "google" && user.id) {
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        } catch (err) {
+          console.error("Error setting emailVerified on linkAccount:", err);
+        }
+      }
+    },
+  },
   callbacks: {
+    async signIn({ user, account }) {
+      // Auto-verify email for Google OAuth users
+      if (account?.provider === "google" && user.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, emailVerified: true },
+          });
+          if (dbUser && !dbUser.emailVerified) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { emailVerified: new Date() },
+            });
+          }
+        } catch (err) {
+          console.error("Error auto-verifying Google user in signIn:", err);
+        }
+      }
+      return true;
+    },
     async redirect({ url, baseUrl }) {
       // If a relative redirect URL is passed, resolve it
       if (url.startsWith("/")) {
@@ -78,7 +127,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return `${baseUrl}/redirect`;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
@@ -88,11 +137,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if ((!token.role || !token.id) && token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
-          select: { id: true, role: true },
+          select: { id: true, role: true, emailVerified: true },
         });
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
+
+          // Ensure Google OAuth account has emailVerified set
+          if (account?.provider === "google" && !dbUser.emailVerified) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { emailVerified: new Date() },
+            });
+          }
         }
       }
 

@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Copy, Check, Compass, UserPlus, RefreshCw, ArrowRight } from 'lucide-react';
+import { createOrderAction } from '@/actions/orderActions';
 import "@/styles/quatre/RequestForm.scss";
 
 type ServiceType = 
@@ -19,6 +22,9 @@ export const RequestForm = () => {
   const [service, setService] = useState<ServiceType>('Delivery Services');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (serviceParam) {
@@ -56,138 +62,44 @@ export const RequestForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const sendTelegramAlert = async () => {
-    const BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || '';
-    const CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || '';
-
-    // Do not attempt to fetch if placeholder token is not configured yet
-    if (
-      !BOT_TOKEN ||
-      BOT_TOKEN === 'YOUR_TELEGRAM_BOT_TOKEN' ||
-      BOT_TOKEN === 'your_telegram_bot_token' ||
-      !CHAT_ID ||
-      CHAT_ID === 'YOUR_TELEGRAM_CHAT_ID' ||
-      CHAT_ID === 'your_telegram_chat_id'
-    ) {
-      console.info('Telegram alert skipped: Bot token or Chat ID is not configured.');
-      return;
-    }
-
-    let message = `🚨 *New Request Received!*\n\n`;
-    message += `👤 *Name:* ${formData.fullName}\n`;
-    message += `📞 *Phone:* ${formData.phone}\n`;
-    message += `✉️ *Email:* ${formData.email || 'N/A'}\n`;
-    message += `🛠 *Service:* ${service}\n\n`;
-
-    if (service === 'Delivery Services' || service === 'Errand Running') {
-      message += `📍 *Pickup:* ${formData.pickupLocation}\n`;
-      message += `🏁 *Destination:* ${formData.deliveryLocation}\n`;
-      message += `📦 *Details:* ${formData.itemDetails}\n`;
-    } else if (service === 'Shopping Assistance' || service === 'Procurement' || service === 'Price Check & Market Survey') {
-      message += `🛒 *Items/Requirements:* ${formData.itemDetails}\n`;
-      message += `💰 *Budget:* ${formData.budget || 'N/A'}\n`;
-    } else if (service === 'Hotel Search & Reservation') {
-      message += `🏨 *City:* ${formData.hotelCity}\n`;
-      message += `📅 *Check-In:* ${formData.checkInDate}\n`;
-      message += `📅 *Check-Out:* ${formData.checkOutDate}\n`;
-      message += `💰 *Budget:* ${formData.budget || 'N/A'}\n`;
-    }
-
-    if (formData.additionalNotes) {
-      message += `\n📝 *Notes:* ${formData.additionalNotes}`;
-    }
-
-    try {
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: message,
-          parse_mode: 'Markdown',
-        }),
-      });
-    } catch (err) {
-      console.warn('Telegram Notification Notice:', err);
-    }
+  const handleCopyTracking = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(null);
 
-    const WEB3FORMS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
-    const isWeb3FormsConfigured = WEB3FORMS_KEY && !WEB3FORMS_KEY.includes('your_web3forms_access_key');
-
-    const GOOGLE_SHEETS_WEBHOOK = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL;
-    const isGoogleSheetsConfigured = GOOGLE_SHEETS_WEBHOOK && !GOOGLE_SHEETS_WEBHOOK.includes('your_deployment_id');
-
-    const GOOGLE_FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL;
-    const isGoogleFormConfigured = GOOGLE_FORM_URL && !GOOGLE_FORM_URL.includes('YOUR_GOOGLE_FORM_ID') && !GOOGLE_FORM_URL.includes('your_google_form_id');
+    const fd = new FormData();
+    fd.append('service', service);
+    fd.append('fullName', formData.fullName);
+    fd.append('email', formData.email);
+    fd.append('phone', formData.phone);
+    fd.append('pickupLocation', formData.pickupLocation);
+    fd.append('deliveryLocation', formData.deliveryLocation);
+    fd.append('itemDetails', formData.itemDetails);
+    fd.append('budget', formData.budget);
+    fd.append('hotelCity', formData.hotelCity);
+    fd.append('checkInDate', formData.checkInDate);
+    fd.append('checkOutDate', formData.checkOutDate);
+    fd.append('additionalNotes', formData.additionalNotes);
 
     try {
-      // 1. Web3Forms Submission (if configured)
-      if (isWeb3FormsConfigured) {
-        await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: `New DOPO Request: ${service} - ${formData.fullName}`,
-            from_name: 'DOPO Logistics Web App',
-            service,
-            ...formData,
-          }),
-        });
+      const res = await createOrderAction(null, fd);
+
+      if (res.error) {
+        setErrorMessage(res.error);
+      } else if (res.success && res.trackingNumber) {
+        setTrackingNumber(res.trackingNumber);
+        setSubmitted(true);
+      } else {
+        setSubmitted(true);
       }
-
-      // 2. Google Sheets Apps Script Webhook (if configured)
-      if (isGoogleSheetsConfigured) {
-        await fetch(GOOGLE_SHEETS_WEBHOOK, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            timestamp: new Date().toISOString(),
-            service,
-            ...formData,
-          }),
-        });
-      }
-
-      // 3. Google Forms fallback (if configured)
-      if (isGoogleFormConfigured) {
-        const googleFormData = new FormData();
-        googleFormData.append('entry.1000001', formData.fullName);
-        googleFormData.append('entry.1000002', formData.phone);
-        googleFormData.append('entry.1000003', formData.email);
-        googleFormData.append('entry.1000004', service);
-        googleFormData.append('entry.1000005', `${formData.pickupLocation} | ${formData.deliveryLocation}`);
-        googleFormData.append('entry.1000006', formData.itemDetails);
-        googleFormData.append('entry.1000007', formData.additionalNotes);
-
-        await fetch(GOOGLE_FORM_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: googleFormData,
-        });
-      }
-
-      if (!isWeb3FormsConfigured && !isGoogleSheetsConfigured && !isGoogleFormConfigured) {
-        // Simulate a brief submission delay when in demo/local mode
-        await new Promise((resolve) => setTimeout(resolve, 400));
-      }
-
-      // 4. Telegram Notification
-      await sendTelegramAlert();
-
-      setSubmitted(true);
     } catch (error) {
       console.error('Form submission notice:', error);
-      // Still set submitted to true so user gets friendly confirmation feedback
       setSubmitted(true);
     } finally {
       setIsSubmitting(false);
@@ -199,11 +111,112 @@ export const RequestForm = () => {
       <div className="request-form-container request-form-container--success">
         <div className="request-form__success-card">
           <div className="request-form__success-icon">✓</div>
-          <h2>Request Submitted!</h2>
-          <p>Thank you, {formData.fullName}. We have received your request for <strong>{service}</strong> and will reach out to you shortly via phone or WhatsApp.</p>
-          <button onClick={() => setSubmitted(false)} className="request-form__btn">
-            Submit Another Request
-          </button>
+          <h2>Request Successfully Placed!</h2>
+          <p>
+            Thank you, <strong>{formData.fullName}</strong>. We have registered your request for{' '}
+            <strong>{service}</strong> in our dispatch system.
+          </p>
+
+          {trackingNumber && (
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '1rem 1.25rem',
+              margin: '1.25rem 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.4rem',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+                YOUR TRACKING NUMBER
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0a1854', fontFamily: 'monospace' }}>
+                  {trackingNumber}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCopyTracking(trackingNumber)}
+                  style={{
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    color: '#2563eb',
+                    padding: '0.35rem 0.6rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 600
+                  }}
+                  title="Copy Tracking Code"
+                >
+                  {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '1rem' }}>
+            {trackingNumber && (
+              <Link
+                href={`/track?code=${trackingNumber}`}
+                className="request-form__btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  textDecoration: 'none',
+                }}
+              >
+                <Compass size={16} />
+                <span>Track Package</span>
+              </Link>
+            )}
+
+            <Link
+              href="/register"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#0a1854',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                textDecoration: 'none'
+              }}
+            >
+              <UserPlus size={16} />
+              <span>Create Account</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitted(false);
+                setTrackingNumber(null);
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                padding: '0.5rem 1rem'
+              }}
+            >
+              Submit Another Request
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -252,27 +265,27 @@ export const RequestForm = () => {
             </div>
 
             <div className="request-form__group">
-              <label className="request-form__label">Phone / WhatsApp Number *</label>
+              <label className="request-form__label">Email Address *</label>
               <input
-                type="tel"
-                name="phone"
+                type="email"
+                name="email"
                 required
-                value={formData.phone}
+                value={formData.email}
                 onChange={handleInputChange}
-                placeholder="+234..."
+                placeholder="john@example.com"
                 className="request-form__input"
               />
             </div>
           </div>
 
           <div className="request-form__group">
-            <label className="request-form__label">Email Address (Optional)</label>
+            <label className="request-form__label">Phone / WhatsApp Number (Optional)</label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="tel"
+              name="phone"
+              value={formData.phone}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="+234..."
               className="request-form__input"
             />
           </div>

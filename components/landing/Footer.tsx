@@ -60,7 +60,7 @@ export const Footer = () => {
               </li>
               <li>
                 <span className="footer__contact-label">Phone:</span>
-                <a href="tel:+2340000000000" className="footer__link">+234 (0) 000 000 0000</a>
+                <a href="tel:+2349161033552" className="footer__link">+234 (0) 916 103 3552</a>
               </li>
               <li>
                 <span className="footer__contact-label">Email:</span>
@@ -69,7 +69,7 @@ export const Footer = () => {
               <li>
                 <span className="footer__contact-label">WhatsApp:</span>
                 <a 
-                  href="https://wa.me/2340000000000" 
+                  href="https://wa.me/2349161033552" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="footer__link footer__link--whatsapp"

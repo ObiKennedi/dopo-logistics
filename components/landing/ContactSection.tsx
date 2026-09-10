@@ -67,7 +67,7 @@ export const ContactSection = () => {
           <div className="contact-section__info">
             {/* WhatsApp */}
             <a
-              href="https://wa.me/2340000000000"
+              href="https://wa.me/2349161033552"
               target="_blank"
               rel="noopener noreferrer"
               className="contact-card contact-card--whatsapp"
@@ -85,7 +85,7 @@ export const ContactSection = () => {
 
             {/* Phone */}
             <a
-              href="tel:+2340000000000"
+              href="tel:+2349161033552"
               className="contact-card"
               data-aos="fade-up"
               data-aos-delay="200"
@@ -95,7 +95,7 @@ export const ContactSection = () => {
               </div>
               <div className="contact-card__content">
                 <span className="contact-card__label">Call Us</span>
-                <h3 className="contact-card__value">+234 (0) 000 000 0000</h3>
+                <h3 className="contact-card__value">+234 (0) 916 103 3552</h3>
               </div>
             </a>
 
