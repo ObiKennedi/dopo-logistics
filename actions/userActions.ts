@@ -30,6 +30,7 @@ export async function updateUserProfileAction(prevState: any, formData: FormData
 
     revalidatePath("/profile");
     revalidatePath("/dashboard");
+    revalidatePath("/admin/profile");
 
     return {
       success: "Profile updated successfully!",
@@ -91,6 +92,9 @@ export async function changePasswordAction(prevState: any, formData: FormData) {
       where: { id: session.user.id },
       data: { password: hashedPassword },
     });
+
+    revalidatePath("/profile");
+    revalidatePath("/admin/profile");
 
     return { success: "Password updated successfully!" };
   } catch (error: any) {

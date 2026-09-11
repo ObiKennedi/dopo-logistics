@@ -222,6 +222,7 @@ export async function replyTicketAction(ticketId: string, messageText: string) {
     ]);
 
     revalidatePath("/support");
+    revalidatePath("/admin/chat");
 
     return {
       success: true,
@@ -289,6 +290,7 @@ export async function updateTicketStatusAction(ticketId: string, newStatus: Tick
     });
 
     revalidatePath("/support");
+    revalidatePath("/admin/chat");
 
     return {
       success: true,
@@ -318,6 +320,7 @@ export async function updateTicketPriorityAction(ticketId: string, newPriority: 
     });
 
     revalidatePath("/support");
+    revalidatePath("/admin/chat");
 
     return {
       success: true,
@@ -436,3 +439,127 @@ export async function fetchTicketDetailsAction(ticketId: string) {
     return { error: "Failed to load ticket details." };
   }
 }
+
+// --------------------------------------------------------------------------
+// FETCH ALL PLATFORM TICKETS FOR ADMIN CONSOLE
+// --------------------------------------------------------------------------
+export async function fetchAdminAllTicketsAction() {
+  const session = await auth();
+
+  if (!session?.user?.id || (session.user.role !== Role.ADMIN && session.user.role !== Role.STAFF)) {
+    return { error: "Unauthorized. Elevated administrative privileges required." };
+  }
+
+  try {
+    const tickets = await prisma.ticket.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            image: true,
+          },
+        },
+        order: {
+          select: {
+            id: true,
+            trackingNumber: true,
+            serviceType: true,
+            status: true,
+          },
+        },
+        messages: {
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    const statusCounts: Record<string, number> = {
+      ALL: tickets.length,
+      OPEN: 0,
+      IN_PROGRESS: 0,
+      WAITING_FOR_CUSTOMER: 0,
+      RESOLVED: 0,
+      CLOSED: 0,
+    };
+
+    tickets.forEach((t) => {
+      if (statusCounts[t.status] !== undefined) {
+        statusCounts[t.status]++;
+      }
+    });
+
+    const serializedTickets = tickets.map((t) => ({
+      id: t.id,
+      ticketNumber: t.ticketNumber,
+      subject: t.subject,
+      description: t.description,
+      category: t.category,
+      priority: t.priority,
+      status: t.status,
+      createdAt: t.createdAt.toISOString(),
+      updatedAt: t.updatedAt.toISOString(),
+      closedAt: t.closedAt ? t.closedAt.toISOString() : null,
+      user: {
+        id: t.user.id,
+        name: t.user.name || "Customer",
+        email: t.user.email,
+        role: t.user.role,
+        image: t.user.image,
+      },
+      order: t.order
+        ? {
+            id: t.order.id,
+            trackingNumber: t.order.trackingNumber,
+            serviceType: t.order.serviceType,
+            status: t.order.status,
+          }
+        : null,
+      messages: t.messages.map((m) => ({
+        id: m.id,
+        ticketId: m.ticketId,
+        senderId: m.senderId,
+        message: m.message,
+        isStaff: m.isStaff,
+        createdAt: m.createdAt.toISOString(),
+        sender: {
+          id: m.sender.id,
+          name: m.sender.name || (m.isStaff ? "Support Team" : "Customer"),
+          email: m.sender.email,
+          role: m.sender.role,
+          image: m.sender.image,
+        },
+      })),
+    }));
+
+    return {
+      success: true,
+      data: {
+        tickets: serializedTickets,
+        stats: statusCounts,
+      },
+    };
+  } catch (error: any) {
+    console.error("Failed to fetch admin tickets:", error);
+    return { error: "Failed to load platform tickets." };
+  }
+}
+

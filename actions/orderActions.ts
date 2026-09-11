@@ -253,10 +253,16 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
       data: { status: newStatus },
     });
 
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/dashboard");
+    revalidatePath("/user-track");
+
     return {
       success: true,
       newStatus: updatedOrder.status,
       updatedAt: updatedOrder.updatedAt.toISOString(),
+      order: updatedOrder,
     };
   } catch (error) {
     console.error("Failed to update status:", error);

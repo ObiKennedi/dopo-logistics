@@ -20,7 +20,10 @@ import {
   Sparkles,
   Calendar,
   Building,
-  ArrowRight
+  ArrowRight,
+  ShoppingBag,
+  SearchCheck,
+  Hotel
 } from "lucide-react";
 import { trackOrderAction, updateOrderStatusAction } from "@/actions/orderActions";
 import { TrackingForm } from "./TrackingForm";
@@ -97,6 +100,101 @@ const formatServiceLabel = (service: ServiceType | string) => {
       return "Hotel Reservation";
     default:
       return service;
+  }
+};
+
+const getServiceClass = (service: ServiceType | string) => {
+  switch (service) {
+    case "DELIVERY_SERVICES":
+    case "Delivery Services":
+      return "dopo-tracker__service-badge--delivery";
+    case "ERRAND_RUNNING":
+    case "Errand Running":
+      return "dopo-tracker__service-badge--errand";
+    case "SHOPPING_ASSISTANCE":
+    case "Shopping Assistance":
+      return "dopo-tracker__service-badge--shopping";
+    case "PROCUREMENT":
+    case "Procurement":
+      return "dopo-tracker__service-badge--procurement";
+    case "PRICE_CHECK":
+    case "Price Check & Market Survey":
+    case "Price Check":
+      return "dopo-tracker__service-badge--price-check";
+    case "HOTEL_RESERVATION":
+    case "Hotel Search & Reservation":
+    case "Hotel Reservation":
+      return "dopo-tracker__service-badge--hotel";
+    default:
+      return "dopo-tracker__service-badge--default";
+  }
+};
+
+const getServiceIcon = (service: ServiceType | string) => {
+  switch (service) {
+    case "DELIVERY_SERVICES":
+    case "Delivery Services":
+      return <Truck size={14} />;
+    case "ERRAND_RUNNING":
+    case "Errand Running":
+      return <Package size={14} />;
+    case "SHOPPING_ASSISTANCE":
+    case "Shopping Assistance":
+    case "PROCUREMENT":
+    case "Procurement":
+      return <ShoppingBag size={14} />;
+    case "PRICE_CHECK":
+    case "Price Check & Market Survey":
+    case "Price Check":
+      return <SearchCheck size={14} />;
+    case "HOTEL_RESERVATION":
+    case "Hotel Search & Reservation":
+    case "Hotel Reservation":
+      return <Hotel size={14} />;
+    default:
+      return <Package size={14} />;
+  }
+};
+
+const formatStatusLabel = (status: OrderStatus | string) => {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "IN_PROGRESS":
+      return "In Progress";
+    case "PICKED_UP":
+      return "Picked Up";
+    case "DELIVERED":
+      return "Delivered";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return status;
+  }
+};
+
+const getStatusClass = (status: OrderStatus | string) => {
+  switch (status) {
+    case "PENDING":
+      return "dopo-tracker__status-pill--pending";
+    case "CONFIRMED":
+      return "dopo-tracker__status-pill--confirmed";
+    case "IN_PROGRESS":
+      return "dopo-tracker__status-pill--in-progress";
+    case "PICKED_UP":
+      return "dopo-tracker__status-pill--picked-up";
+    case "DELIVERED":
+      return "dopo-tracker__status-pill--delivered";
+    case "COMPLETED":
+      return "dopo-tracker__status-pill--completed";
+    case "CANCELLED":
+      return "dopo-tracker__status-pill--cancelled";
+    default:
+      return "dopo-tracker__status-pill--default";
   }
 };
 
@@ -264,21 +362,33 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ initialCode = "", us
                   <button
                     type="button"
                     onClick={() => handleCopy(order.trackingNumber)}
-                    className="orders-dashboard__copy-btn"
-                    title="Copy Code"
+                    className="dopo-tracker__copy-btn"
+                    title={copied ? "Copied to clipboard!" : "Copy Tracking Number"}
+                    aria-label="Copy Tracking Number"
                   >
-                    {copied ? <Check size={16} color="#10b981" /> : <Copy size={16} />}
+                    {copied ? (
+                      <>
+                        <Check size={14} className="dopo-tracker__copy-icon--success" />
+                        <span className="dopo-tracker__copy-label">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        <span className="dopo-tracker__copy-label">Copy</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                <span className="orders-dashboard__service-badge orders-dashboard__service-badge--delivery">
-                  {formatServiceLabel(order.serviceType)}
+              <div className="dopo-tracker__badges-wrap">
+                <span className={`dopo-tracker__service-badge ${getServiceClass(order.serviceType)}`}>
+                  {getServiceIcon(order.serviceType)}
+                  <span>{formatServiceLabel(order.serviceType)}</span>
                 </span>
-                <span className="orders-dashboard__status-pill orders-dashboard__status-pill--in-progress">
-                  <span className="orders-dashboard__status-pill-dot" />
-                  <span>{order.status}</span>
+                <span className={`dopo-tracker__status-pill ${getStatusClass(order.status)}`}>
+                  <span className="dopo-tracker__status-pill-dot" />
+                  <span>{formatStatusLabel(order.status)}</span>
                 </span>
               </div>
             </div>
@@ -522,7 +632,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ initialCode = "", us
 
               <div className="dopo-tracker__support-actions">
                 <a
-                  href="https://wa.me/2348000000000"
+                  href="https://wa.me/2349161033552"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="dopo-tracker__support-btn dopo-tracker__support-btn--whatsapp"
@@ -531,7 +641,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ initialCode = "", us
                   WhatsApp Support
                 </a>
                 <a
-                  href="tel:+2348000000000"
+                  href="tel:+2349161033552"
                   className="dopo-tracker__support-btn dopo-tracker__support-btn--call"
                 >
                   <Phone size={14} />

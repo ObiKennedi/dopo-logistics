@@ -363,7 +363,7 @@ export const SupportTicketsView: React.FC<SupportTicketsViewProps> = ({
 
         <div className="support-hotline-card__actions">
           <a
-            href="https://wa.me/2348000000000"
+            href="https://wa.me/2349161033552"
             target="_blank"
             rel="noopener noreferrer"
             className="support-hotline-card__btn support-hotline-card__btn--wa"
@@ -372,7 +372,7 @@ export const SupportTicketsView: React.FC<SupportTicketsViewProps> = ({
             <span>WhatsApp Support</span>
           </a>
           <a
-            href="tel:+2348000000000"
+            href="tel:+2349161033552"
             className="support-hotline-card__btn support-hotline-card__btn--phone"
           >
             <Phone size={15} />
